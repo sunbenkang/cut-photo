@@ -1,0 +1,146 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-hollywood-blue: #003399;
+  --color-hollywood-blue-light: #0044bb;
+  --color-hollywood-orange: #FF4500;
+  --color-hollywood-cream: #FDFBF7;
+  --color-hollywood-cream-input: #FAF9F6;
+  --color-klein: #003399;
+  --color-klein-light: #0044bb;
+  --color-klein-dark: #002266;
+  --color-klein-50: #E8EEF8;
+  --color-klein-100: #C5D4F0;
+  --color-klein-400: #3366CC;
+  --color-klein-500: #0044bb;
+  --color-klein-600: #003399;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-heading);
+  --font-serif-cn: var(--font-serif-cn);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --hollywood-blue: #003399;
+  --hollywood-orange: #FF4500;
+  --hollywood-cream: #FDFBF7;
+  --hollywood-cream-input: #FAF9F6;
+
+  --background: #FDFBF7;
+  --foreground: #1a1a2e;
+  --card: #FFFFFF;
+  --card-foreground: #1a1a2e;
+  --popover: #FFFFFF;
+  --popover-foreground: #1a1a2e;
+  --primary: #003399;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F5F3EE;
+  --secondary-foreground: #1a1a2e;
+  --muted: #F0EDE6;
+  --muted-foreground: #6b7280;
+  --accent: #FF4500;
+  --accent-foreground: #FFFFFF;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #003399;
+  --input: #003399;
+  --ring: #003399;
+  --radius: 0.375rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1a1a2e;
+  --sidebar-primary: #003399;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F5F3EE;
+  --sidebar-accent-foreground: #1a1a2e;
+  --sidebar-border: #00339933;
+  --sidebar-ring: #003399;
+  --chart-1: #003399;
+  --chart-2: #FF4500;
+  --chart-3: #6b7280;
+  --chart-4: #3366CC;
+  --chart-5: #1a1a2e;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-hollywood-cream text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .hollywood-card {
+    @apply relative bg-white border-2 border-hollywood-blue;
+    box-shadow: 6px 6px 0 0 #003399;
+  }
+
+  .hollywood-panel {
+    @apply bg-white border-2 border-hollywood-blue p-4;
+  }
+
+  .hollywood-option {
+    @apply px-3 py-2 border border-gray-300 bg-white text-gray-600 text-xs transition-all hover:border-hollywood-blue;
+  }
+
+  .hollywood-option-active {
+    @apply border-hollywood-orange bg-hollywood-orange text-white font-medium;
+  }
+
+  .hollywood-input {
+    @apply w-full border-2 border-hollywood-blue bg-hollywood-cream-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-hollywood-blue/30;
+  }
+
+  .upload-dashed {
+    @apply border-2 border-dashed border-hollywood-orange bg-white;
+  }
+
+  .font-serif-cn {
+    font-family: var(--font-serif-cn), "Noto Serif SC", serif;
+  }
+}

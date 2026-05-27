@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.env
+.env.local
+*.pyc
+__pycache__/
+*.egg-info/
+.venv/
+venv/
+backend/data/
+backend/.env
+*.sqlite3
+.DS_Store
+Thumbs.db
+.claude/
+output/
+test_image.jpg
