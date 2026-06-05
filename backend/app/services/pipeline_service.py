@@ -2,8 +2,8 @@
 
 import asyncio
 import json
+import time
 from datetime import datetime
-from pathlib import Path
 
 from app.models.database import async_session
 from app.models.db_models import Generation, Work
@@ -19,16 +19,56 @@ cancel_events: dict[str, asyncio.Event] = {}
 # SSE queues: task_id -> asyncio.Queue
 sse_queues: dict[str, asyncio.Queue] = {}
 
+# Timestamps for TTL-based cleanup: task_id -> creation time
+_task_timestamps: dict[str, float] = {}
+
+# Maximum lifetime for a task entry (30 minutes)
+_TASK_TTL_SECONDS = 30 * 60
+
+# Maximum number of entries before forced cleanup
+_MAX_ENTRIES = 1000
+
+
+def _enforce_max_entries():
+    """Remove oldest entries if dictionaries exceed max capacity."""
+    if len(_task_timestamps) > _MAX_ENTRIES:
+        # Sort by timestamp, remove oldest exceeding entries
+        sorted_tasks = sorted(_task_timestamps.items(), key=lambda x: x[1])
+        excess = len(_task_timestamps) - _MAX_ENTRIES
+        for task_id, _ in sorted_tasks[:excess]:
+            cancel_events.pop(task_id, None)
+            sse_queues.pop(task_id, None)
+            _task_timestamps.pop(task_id, None)
+
+
+def _cleanup_expired_tasks():
+    """Remove tasks that have exceeded TTL."""
+    now = time.time()
+    expired = [
+        tid for tid, ts in _task_timestamps.items()
+        if now - ts > _TASK_TTL_SECONDS
+    ]
+    for task_id in expired:
+        cancel_events.pop(task_id, None)
+        sse_queues.pop(task_id, None)
+        _task_timestamps.pop(task_id, None)
+
 
 def get_cancel_event(task_id: str) -> asyncio.Event:
+    _cleanup_expired_tasks()
+    _enforce_max_entries()
     if task_id not in cancel_events:
         cancel_events[task_id] = asyncio.Event()
+        _task_timestamps[task_id] = time.time()
     return cancel_events[task_id]
 
 
 def get_sse_queue(task_id: str) -> asyncio.Queue:
+    _cleanup_expired_tasks()
+    _enforce_max_entries()
     if task_id not in sse_queues:
         sse_queues[task_id] = asyncio.Queue()
+        _task_timestamps[task_id] = time.time()
     return sse_queues[task_id]
 
 
@@ -41,6 +81,7 @@ async def send_sse(task_id: str, event: str, data: dict):
 async def cleanup_task(task_id: str):
     """Clean up task resources."""
     cancel_events.pop(task_id, None)
+    _task_timestamps.pop(task_id, None)
     queue = sse_queues.pop(task_id, None)
     if queue:
         # Signal end of stream
@@ -61,6 +102,7 @@ async def run_pipeline(
     template_prompt: str,
     template_name: str,
     user_prompt: str,
+    prompt_multiplier: int = 1,
     original_image_path: str,
     original_width: int,
     original_height: int,
@@ -102,6 +144,7 @@ async def run_pipeline(
             template_prompt=template_prompt,
             character_name=character_name or "",
             user_additions=user_prompt,
+            multiplier=prompt_multiplier,
         )
 
         async with async_session() as db:
@@ -113,7 +156,7 @@ async def run_pipeline(
 
         # ── Step 3: Generate image (with retry loop) ──
         retry_count = 0
-        max_quality_checks = 50  # safety cap; user can cancel anytime
+        max_quality_checks = 5  # limit retries to avoid excessive API costs
         quality_results = []
         current_prompt = final_prompt
         works_dir = get_works_dir(user_id)

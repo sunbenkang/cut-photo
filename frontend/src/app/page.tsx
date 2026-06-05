@@ -120,6 +120,7 @@ export default function GenerationPage() {
         template_id: store.selectedTemplate?.id || null,
         user_prompt: store.userPrompt,
         skip_character: store.skipCharacter,
+        prompt_multiplier: promptMultiplier,
       });
       store.setTaskId(res.task_id);
     } catch (err: unknown) {

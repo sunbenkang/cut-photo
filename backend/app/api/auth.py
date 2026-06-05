@@ -46,21 +46,20 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     else:
         user.last_active_at = datetime.now().isoformat()
 
-    # Create session
-    session_token = create_session_token(user.id, app_key)
-    from datetime import timedelta
+    # Determine model and create a single session token
+    selected_model = getattr(body, "model", None) or "qwen-image-2.0"
+    session_token = create_session_token(user.id, app_key, selected_model)
+
+    # Create session with the same token that will be returned to client
+    from datetime import timedelta, timezone
     db_session = Session(
         user_id=user.id,
         session_token=session_token,
-        expires_at=(datetime.utcnow() + timedelta(days=365)).isoformat(),
+        expires_at=(datetime.now(timezone.utc) + timedelta(days=365)).isoformat(),
         created_at=datetime.now().isoformat(),
     )
     db.add(db_session)
     await db.commit()
-
-    # Store selected model in session token
-    selected_model = getattr(body, "model", None) or "qwen-image-2.0"
-    session_token = create_session_token(user.id, app_key, selected_model)
 
     return LoginResponse(
         session_token=session_token,

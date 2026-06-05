@@ -76,6 +76,7 @@ async def start_generation(
             template_prompt=template_prompt,
             template_name=template_name,
             user_prompt=body.user_prompt,
+            prompt_multiplier=getattr(body, "prompt_multiplier", 1) or 1,
             original_image_path=original_path,
             original_width=w,
             original_height=h,
