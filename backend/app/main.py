@@ -1,13 +1,19 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.models.database import init_db
 from app.services.seed_data import seed_templates
 from app.middleware.auth_middleware import auth_middleware
 from app.api import auth, upload, movies, generate, works, templates, config_route
+
+# Rate limiter: 60 requests/minute per IP for general endpoints
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
 
 @asynccontextmanager
@@ -25,6 +31,10 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Attach rate limiter to app
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS
 app.add_middleware(
@@ -49,5 +59,6 @@ app.include_router(config_route.router)
 
 
 @app.get("/api/health")
-async def health():
+@limiter.limit("10/minute")
+async def health(request: Request):
     return {"status": "ok", "app": settings.app_name}

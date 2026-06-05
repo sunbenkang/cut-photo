@@ -100,6 +100,7 @@ class GenerateRequest(BaseModel):
     template_id: Optional[int] = None
     user_prompt: str = ""
     skip_character: bool = False
+    prompt_multiplier: int = Field(1, ge=1, le=3, description="提示词强化倍率 1-3")
 
 
 class GenerateResponse(BaseModel):

@@ -8,10 +8,13 @@ Layer 3: Portrait features — extract face landmarks, skin tone, lighting info
 
 import asyncio
 import json
+import logging
 import subprocess
 from pathlib import Path
 
 from app.models.schemas import ValidationLayer, FaceBox
+
+logger = logging.getLogger(__name__)
 
 
 async def validate_image(file_path: str, api_key: str, file_bytes: bytes) -> tuple[list[ValidationLayer], list[FaceBox], int, int]:
@@ -123,11 +126,13 @@ async def _validate_content_safety(file_path: str, api_key: str) -> ValidationLa
 
         if "违规" in output:
             reason = output.split("违规")[-1].strip()[:200] if "违规" in output else "内容安全检测未通过"
+            logger.warning(f"Content safety check failed: {reason}")
             return ValidationLayer(name="content_safety", passed=False, detail=f"内容安全检测未通过: {reason}")
         else:
             return ValidationLayer(name="content_safety", passed=True, detail="内容安全检测通过")
     except Exception as e:
-        # If safety check fails, allow through but warn
+        # If safety check fails, log the error but allow through to not block legitimate use
+        logger.error(f"Content safety check unavailable: {e}")
         return ValidationLayer(name="content_safety", passed=True, detail=f"安全检测跳过 (服务不可用)")
 
 

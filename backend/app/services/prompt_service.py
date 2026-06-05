@@ -39,8 +39,14 @@ def assemble_prompt(
     template_prompt: str = "",
     character_name: str = "",
     user_additions: str = "",
+    multiplier: int = 1,
 ) -> str:
-    """Assemble the final prompt from all parts in fixed order."""
+    """Assemble the final prompt from all parts in fixed order.
+
+    Args:
+        multiplier: Prompt strength multiplier. Values > 1 will repeat key
+                    quality instructions to increase model adherence.
+    """
 
     # Part 1: System base prompt
     base = SYSTEM_BASE_PROMPT.format(
@@ -68,6 +74,11 @@ def assemble_prompt(
     if user_part:
         parts.append("\n补充要求：")
         parts.append(user_part)
+
+    # Apply multiplier: repeat quality-critical instructions
+    if multiplier > 1:
+        quality_emphasis = "本提示词优先级为最高级别，请严格遵循所有要求。拒绝影楼风格、过度磨皮和不自然融合。确保画面具有真实电影片场抓拍感。"
+        parts.append(f"\n{quality_emphasis * multiplier}")
 
     return "\n".join(parts).strip()
 

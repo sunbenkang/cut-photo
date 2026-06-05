@@ -9,6 +9,7 @@ from app.models.database import get_db
 from app.models.schemas import UploadResponse
 from app.services.validation_service import validate_image
 from app.utils.storage import get_original_dir, generate_filename, BASE_DIR
+from app.utils.image_utils import resize_if_needed
 
 router = APIRouter(prefix="/api", tags=["upload"])
 
@@ -24,6 +25,9 @@ async def upload_image(
 
     if not contents:
         raise HTTPException(status_code=422, detail="上传文件为空")
+
+    # Resize if too large (Qwen-Image has size limits)
+    contents = resize_if_needed(contents)
 
     # Save original file
     upload_id = uuid.uuid4().hex
@@ -55,7 +59,10 @@ async def upload_image(
 
 
 @router.get("/files/originals/{user_id}/{filename}")
-async def serve_original(user_id: int, filename: str):
+async def serve_original(user_id: int, filename: str, request: Request):
+    # Verify the requesting user owns this file
+    if not hasattr(request.state, "user") or request.state.user.id != user_id:
+        raise HTTPException(status_code=403, detail="无权访问此文件")
     file_path = BASE_DIR / "data" / "originals" / str(user_id) / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="文件不存在")
@@ -63,7 +70,10 @@ async def serve_original(user_id: int, filename: str):
 
 
 @router.get("/files/works/{user_id}/{filename}")
-async def serve_work(user_id: int, filename: str):
+async def serve_work(user_id: int, filename: str, request: Request):
+    # Verify the requesting user owns this file
+    if not hasattr(request.state, "user") or request.state.user.id != user_id:
+        raise HTTPException(status_code=403, detail="无权访问此文件")
     file_path = BASE_DIR / "data" / "works" / str(user_id) / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="文件不存在")

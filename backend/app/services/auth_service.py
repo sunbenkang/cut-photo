@@ -1,6 +1,6 @@
 import asyncio
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from jose import jwt
 
@@ -10,13 +10,14 @@ from app.config import settings
 # ── Session Token (JWT) ──
 
 def create_session_token(user_id: int, app_key: str, model: str = "qwen-image-2.0") -> str:
-    expire = datetime.utcnow() + timedelta(days=settings.session_expire_days)
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(days=settings.session_expire_days)
     payload = {
         "user_id": user_id,
         "app_key_hash": hashlib.sha256(app_key.encode()).hexdigest()[:16],
         "model": model,
         "exp": expire,
-        "iat": datetime.utcnow(),
+        "iat": now,
     }
     return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 

@@ -20,7 +20,6 @@ async def auth_middleware(request: Request, call_next):
         "/api/health",
         "/api/config",
         "/api/templates",
-        "/api/files",
     ]
     path = request.url.path
 

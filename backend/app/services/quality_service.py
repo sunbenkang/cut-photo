@@ -35,7 +35,6 @@ async def check_quality(image_path: str, api_key: str) -> dict:
             return {"passed": False, "feedback": output[:500], "detail": "质量检测未通过，将自动优化重试"}
 
     except asyncio.TimeoutError:
-        # Timeout — assume pass to not block
-        return {"passed": True, "feedback": "检测超时", "detail": "质量检测超时，默认通过"}
+        return {"passed": False, "feedback": "检测超时", "detail": "质量检测超时，将触发重试"}
     except Exception as e:
-        return {"passed": True, "feedback": str(e), "detail": "质量检测跳过"}
+        return {"passed": False, "feedback": str(e), "detail": "质量检测异常，将触发重试"}
